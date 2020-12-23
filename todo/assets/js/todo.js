@@ -18,7 +18,7 @@ $("input[type='text']").keypress(function(event){
 		var text = $(this).val() ;
 		//create a new li....
 		if(text.length > 0 ){
-		$("ul").append("<li>"+"<span><i class='fa fa-trash'></i></span> "+text+"</li>") ;
+		$("#itemList").append("<li>"+"<span><i class='fa fa-trash'></i></span> "+text+"</li>") ;
 		$(this).val("") ;
 	}
 
