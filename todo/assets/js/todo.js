@@ -3,7 +3,7 @@
 $("ul").on("click" , "li" , (function(){
 	$(this).toggleClass("completed") ;
 })) ;
-// click on x to delete the todo...
+// click on "X" to delete the to-do...
 
 $("ul").on("click" , "span" , (function(event){
 	$(this).parent().fadeOut(500 , function(){
