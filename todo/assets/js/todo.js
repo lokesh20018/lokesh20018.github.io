@@ -1,6 +1,5 @@
-
 // checking the completed tasks....
-$("ul").on("click" , "li" , (function(){
+$("#itemList").on("click" , "li" , (function(){
 	$(this).toggleClass("completed") ;
 })) ;
 // click on "X" to delete the to-do...
