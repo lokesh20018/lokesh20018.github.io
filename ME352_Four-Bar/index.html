@@ -2,7 +2,7 @@
 <html><head >
     <meta charset="UTF-8">
     <title>
-      Four Bar Analysis
+      Four Bar Position analysis
     </title>
     <link href="style.css" type="text/css" rel="stylesheet">
 
@@ -25,45 +25,43 @@
 
 
         
-        <canvas id="aml-fl-c" width="1200" height="500">
+        <canvas id="mechanismDrawing" width="1200" height="500">
         </canvas>
-        <table class=" ">
+        <table class="options">
           <tbody><tr>
             <td>
               
             </td>
             <td class="controls">
-              <button class="anim-toggle:aml-fl-c">Animation<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
-              <button class="reset:aml-fl-c">Reset</button>
+              <button class="anim-toggle:mechanismDrawing">Animation<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
+              <button class="reset:mechanismDrawing">Reset</button>
               <button id="saveCanvas">Capture</button>
-              <table class="alignTop">
+              <table >
                 <tbody><tr>
                   <td>Zoom:</td>
-                  <td><span><input style="width:84px;" type="range" min="10" max="100" value="100" step="5" class="data-input:aml-fl-c:zoom">
-                  <span class="data-option:aml-fl-c:zoom">100</span>%</span></td>
+                  <td><span><input style="width:84px;" type="range" min="10" max="100" value="100" step="5" class="data-input:mechanismDrawing:zoom">
+                  <span class="data-option:mechanismDrawing:zoom">100</span>%</span></td>
                 </tr>
                 <tr>
                   <td>Show:</td>
                   <td>
-                    <button class="option-toggle:aml-fl-c:showLabels">labels<span data-icon="B" aria-hidden="true" class="checkbox"></span></button>
-                    <button class="option-toggle:aml-fl-c:showPivots">pivots<span data-icon="B" aria-hidden="true" class="checkbox"></span></button>
-                    <button class="option-toggle:aml-fl-c:showInputRange">input range<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
+                    <button class="option-toggle:mechanismDrawing:showLabels">labels<span data-icon="B" aria-hidden="true" class="checkbox"></span></button>
+                    <button class="option-toggle:mechanismDrawing:showPivots">pivots<span data-icon="B" aria-hidden="true" class="checkbox"></span></button>
+                    <button class="option-toggle:mechanismDrawing:showInputRange">input range<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
                   </td>
                 </tr>
                 <tr>
                   <td>Trace:</td>
                   <td>
-                    <button class="option-toggle:aml-fl-c:traceC">C<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
-                    <button class="option-toggle:aml-fl-c:traceD">D<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
-                    <button class="option-toggle:aml-fl-c:traceP">P<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
+                    <button class="option-toggle:mechanismDrawing:traceC">C<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
+                    <button class="option-toggle:mechanismDrawing:traceD">D<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
+                    <button class="option-toggle:mechanismDrawing:traceP">P<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
                   </td>
                 </tr>
-              </tbody></table>
-              <table>
-                <tbody><tr><td>Input <script type="math/tex" id="MathJax-Element-67">\alpha</script>:</td><td><span class="data-option:aml-fl-c:inputType">crank</span></td></tr>
-                <tr><td>Output <script type="math/tex" id="MathJax-Element-68">\beta</script>:</td><td><span class="data-option:aml-fl-c:outputType">rocker</span></td></tr>
-                <tr><td>Shortest link:</td><td><span class="data-option:aml-fl-c:GrashofInfo">rotates fully</span></td></tr>
-                <tr><td></td><td>(<span class="data-option:aml-fl-c:GrashofType">Grashof</span>)</td></tr>
+                <tr><td>Input <script type="math/tex" id="MathJax-Element-67">\alpha</script>:</td><td><span class="data-option:mechanismDrawing:inputType">crank</span></td></tr>
+                <tr><td>Output <script type="math/tex" id="MathJax-Element-68">\beta</script>:</td><td><span class="data-option:mechanismDrawing:outputType">rocker</span></td></tr>
+                <tr><td>Shortest link:</td><td><span class="data-option:mechanismDrawing:GrashofInfo">rotates fully</span></td></tr>
+                <tr><td></td><td>(<span class="data-option:mechanismDrawing:GrashofType">Grashof</span>)</td></tr>
               </tbody></table>
             </td>
             
@@ -77,72 +75,72 @@
           </tr>
           <tr>
             <td>Ground link length:</td>
-            <td><input type="range" min="5" max="100" value="0" step="1" class="data-input:aml-fl-c:g lengthInput" style="visibility: visible;"></td>
-            <td>g =  <span class="data-option:aml-fl-c:g">40</span> cm</td>
+            <td><input type="range" min="5" max="100" value="0" step="1" class="data-input:mechanismDrawing:g lengthInput" style="visibility: visible;"></td>
+            <td>g =  <span class="data-option:mechanismDrawing:g">40</span> cm</td>
           </tr>
           <tr>
             <td>Input link length:</td>
-            <td><input type="range" min="5" max="80" value="0" step="1" class="data-input:aml-fl-c:a lengthInput" style="visibility: visible;"></td>
-            <td>a =  <span class="data-option:aml-fl-c:a">20</span> cm</td>
+            <td><input type="range" min="5" max="80" value="0" step="1" class="data-input:mechanismDrawing:a lengthInput" style="visibility: visible;"></td>
+            <td>a =  <span class="data-option:mechanismDrawing:a">20</span> cm</td>
           </tr>
           <tr>
             <td>Output link length:</td>
-            <td><input type="range" min="5" max="80" value="0" step="1" class="data-input:aml-fl-c:b lengthInput" style="visibility: visible;"></td>
-            <td>b =  <span class="data-option:aml-fl-c:b">30</span> cm</td>
+            <td><input type="range" min="5" max="80" value="0" step="1" class="data-input:mechanismDrawing:b lengthInput" style="visibility: visible;"></td>
+            <td>b =  <span class="data-option:mechanismDrawing:b">30</span> cm</td>
           </tr>
           <tr class="bottomBorder">
             <td>Floating link length:</td>
-            <td><input type="range" min="5" max="80" value="0" step="1" class="data-input:aml-fl-c:f lengthInput" style="visibility: visible;"></td>
-            <td>f = <span class="data-option:aml-fl-c:f">40</span> cm</td>
+            <td><input type="range" min="5" max="80" value="0" step="1" class="data-input:mechanismDrawing:f lengthInput" style="visibility: visible;"></td>
+            <td>f = <span class="data-option:mechanismDrawing:f">40</span> cm</td>
           </tr>
           <tr>
             <td>Coupler position:</td>
-            <td><input type="range" min="-400" max="400" value="0" step="10" class="data-input:aml-fl-c:PPosition"></td>
-            <td><script type="math/tex" id="MathJax-Element-77">P_{\rm pos} = </script> <span class="data-option:aml-fl-c:PPosition">0</span>%
+            <td><input type="range" min="-400" max="400" value="0" step="10" class="data-input:mechanismDrawing:PPosition"></td>
+            <td><script type="math/tex" id="MathJax-Element-77">P_{\rm pos} = </script> <span class="data-option:mechanismDrawing:PPosition">0</span>%
             from DC midpoint towards C
             </td>
           </tr>
           <tr class="bottomBorder">
             <td>Coupler offset:</td>
-            <td><input type="range" min="-200" max="200" value="0" step="10" class="data-input:aml-fl-c:POffset"></td>
-            <td><script type="math/tex" id="MathJax-Element-78">P_{\rm off} = </script> <span class="data-option:aml-fl-c:POffset">0</span>%
+            <td><input type="range" min="-200" max="200" value="0" step="10" class="data-input:mechanismDrawing:POffset"></td>
+            <td><script type="math/tex" id="MathJax-Element-78">P_{\rm off} = </script> <span class="data-option:mechanismDrawing:POffset">0</span>%
             of DC length
             </td>
           </tr>
           <tr class="bottomBorder">
             <td>Ground link angle:</td>
-            <td><input type="range" min="-180" max="180" value="0" step="5" class="data-input:aml-fl-c:gAngleDeg"></td>
-            <td><script type="math/tex" id="MathJax-Element-79">\theta_{\rm g} = </script> <span class="data-option:aml-fl-c:gAngleDeg">0</span>°
+            <td><input type="range" min="-180" max="180" value="0" step="5" class="data-input:mechanismDrawing:gAngleDeg"></td>
+            <td><script type="math/tex" id="MathJax-Element-79">\theta_{\rm g} = </script> <span class="data-option:mechanismDrawing:gAngleDeg">0</span>°
             </td>
           </tr>
           <tr>
             <td colspan="3">
-              <button class="option-toggle:aml-fl-c:oscInput largeB">limited reciprocating input<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
-              <button class="option-toggle:aml-fl-c:showInputRange largeB">show input range<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
+              <button class="option-toggle:mechanismDrawing:oscInput largeB">limited reciprocating input<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
+              <button class="option-toggle:mechanismDrawing:showInputRange largeB">show input range<span data-icon="," aria-hidden="true" class="checkbox"></span></button>
             </td>
           </tr>
           <tr>
             <td>Input angle center:</td>
-            <td><input type="range" min="0" max="100" value="0" step="5" class="data-input:aml-fl-c:oscCenter oscInput" style="visibility: hidden;"></td>
+            <td><input type="range" min="0" max="100" value="0" step="5" class="data-input:mechanismDrawing:oscCenter oscInput" style="visibility: hidden;"></td>
             <td><span class="oscInput" style="visibility: hidden;">
-            <span class="data-option:aml-fl-c:oscCenter">50</span>%
+            <span class="data-option:mechanismDrawing:oscCenter">50</span>%
               
               <span class="unlimitedDesc">from 0° to 360°</span>
             </span></td>
           </tr>
           <tr class="bottomBorder">
             <td>Input angle range:  </td>
-            <td><input type="range" min="0" max="100" value="0" step="5" class="data-input:aml-fl-c:oscMagnitude oscInput" style="visibility: hidden;"></td>
+            <td><input type="range" min="0" max="100" value="0" step="5" class="data-input:mechanismDrawing:oscMagnitude oscInput" style="visibility: hidden;"></td>
             <td><span class="oscInput" style="visibility: hidden;">
               Δα =
-              <span class="data-option:aml-fl-c:oscMagnitude">50</span>%
+              <span class="data-option:mechanismDrawing:oscMagnitude">50</span>%
               <span class="unlimitedDesc">of 180°</span>
             </span></td>
           </tr>
           <tr>
             <td>Grashof index:</td>
             <td></td>
-            <td>G = s + l - p - q = <span class="data-option:aml-fl-c:GrashofIndex">10</span> cm
+            <td>G = s + l - p - q = <span class="data-option:mechanismDrawing:GrashofIndex">10</span> cm
             
           </tr>
           

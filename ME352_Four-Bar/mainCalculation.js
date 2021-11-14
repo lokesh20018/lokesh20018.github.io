@@ -1,47 +1,45 @@
 
 $(document).ready(function() {
 
-    var limitsFourBar = function(pd, g, f, a, b) {
-        var limits = {};
-        limits.L = g + f + a + b;
-        limits.ValidityIndex = limits.L - 2 * Math.max(g, f, a, b);
-        limits.valid = ((limits.ValidityIndex >= 0) && (Math.min(g, f, a, b) >= 0));
-        if (limits.ValidityIndex >= 0) {
-            limits.ValidityRelation = "≥ 0";
+    var limitsFourBar = function(parametersDescription, groundLink, floatingLink, inputLink, outputLink) {
+        var restraints = {};
+        restraints.L = groundLink + floatingLink + inputLink + outputLink;
+        restraints.ValidityIndex = restraints.L - 2 * Math.max(groundLink, floatingLink, inputLink, outputLink);
+        restraints.valid = ((restraints.ValidityIndex >= 0) && (Math.min(groundLink, floatingLink, inputLink, outputLink) >= 0));
+        if (restraints.ValidityIndex >= 0) {
+            restraints.ValidityRelation = "≥ 0";
         } else {
-            limits.ValidityRelation = "< 0";
+            restraints.ValidityRelation = "< 0";
+        }
+        restraints.GrashofIndex = restraints.L - 2 * (Math.max(groundLink, floatingLink, inputLink, outputLink) + Math.min(groundLink, floatingLink, inputLink, outputLink));
+        if (restraints.GrashofIndex > 0) {
+            restraints.GrashofRelation = "> 0";
+        } else if (restraints.GrashofIndex == 0) {
+            restraints.GrashofRelation = "= 0";
+        } else {
+            restraints.GrashofRelation = "< 0";
         }
 
-        limits.GrashofIndex = limits.L - 2 * (Math.max(g, f, a, b) + Math.min(g, f, a, b));
-        if (limits.GrashofIndex > 0) {
-            limits.GrashofRelation = "> 0";
-        } else if (limits.GrashofIndex == 0) {
-            limits.GrashofRelation = "= 0";
-        } else {
-            limits.GrashofRelation = "< 0";
-        }
-
-        limits.T1 = g + f - a - b;
-        limits.T2 = b + g - a - f;
-        limits.T3 = b + f - a - g;
+        restraints.T1 = groundLink + floatingLink - inputLink - outputLink;
+        restraints.T2 = outputLink + groundLink - inputLink - floatingLink;
+        restraints.T3 = outputLink + floatingLink - inputLink - groundLink;
         var charVal = function(TVal) {
             if (TVal > 0) {
                 return "+";
             } else if (TVal == 0) {
                 return "0";
-            } else { // TVal < 0
+            } else { 
                 return "-";
             }
         };
-        var linkageKey = (charVal(limits.T1) + charVal(limits.T2) + charVal(limits.T3));
-
+        var linkageKey = (charVal(restraints.T1) + charVal(restraints.T2) + charVal(restraints.T3));
         var limitAngles = [
-            pd.cosLawAngle(a, g, f + b),
-            -pd.cosLawAngle(a, g, f + b),
-            pd.cosLawAngle(a, g, f - b),
-            2 * Math.PI - pd.cosLawAngle(a, g, f - b),
-            pd.cosLawAngle(a, g, b - f),
-            2 * Math.PI - pd.cosLawAngle(a, g, b - f)
+            parametersDescription.cosLawAngle(inputLink, groundLink, floatingLink + outputLink),
+            -parametersDescription.cosLawAngle(inputLink, groundLink, floatingLink + outputLink),
+            parametersDescription.cosLawAngle(inputLink, groundLink, floatingLink - outputLink),
+            2 * Math.PI - parametersDescription.cosLawAngle(inputLink, groundLink, floatingLink - outputLink),
+            parametersDescription.cosLawAngle(inputLink, groundLink, outputLink - floatingLink),
+            2 * Math.PI - parametersDescription.cosLawAngle(inputLink, groundLink, outputLink - floatingLink)
         ];
 
         var keyMap = {
@@ -74,169 +72,147 @@ $(document).ready(function() {
             "---": ["0-rocker", "0-rocker", false, 0, 2,  1,  0]
         }
         var data = keyMap[linkageKey];
-        limits.inputType = data[0];
-        limits.outputType = data[1];
-        limits.canFlip = (data[4] > 0);
-        limits.limited = (data[5] >= 0);
-        limits.Grashof = data[2];
-        limits.flipPhase = data[3];
-        limits.flipPeriod = data[4];
-        limits.alphaMin = (data[5] >= 0 ? limitAngles[data[5]] : 0);
-        limits.alphaMax = (data[6] >= 0 ? limitAngles[data[6]] : 0);
+        restraints.inputType = data[0];
+        restraints.outputType = data[1];
+        restraints.canFlip = (data[4] > 0);
+        restraints.limited = (data[5] >= 0);
+        restraints.Grashof = data[2];
+        restraints.flipPhase = data[3];
+        restraints.flipPeriod = data[4];
+        restraints.alphaMin = (data[5] >= 0 ? limitAngles[data[5]] : 0);
+        restraints.alphaMax = (data[6] >= 0 ? limitAngles[data[6]] : 0);
 
-        if (limits.Grashof) {
-            limits.GrashofType = "Grashof";
-            limits.GrashofInfo = "rotates fully";
+        if (restraints.Grashof) {
+            restraints.GrashofType = "Grashof";
+            restraints.GrashofInfo = "rotates fully";
         } else {
-            limits.GrashofType = "non-Grashof";
-            limits.GrashofInfo = "reciprocates";
+            restraints.GrashofType = "non-Grashof";
+            restraints.GrashofInfo = "reciprocates";
         }
-
-        return limits;
+        return restraints;
     };
 
     var linkagePDFunction = function(t) {
         this.addOption("controlMethod", "lengths");
         this.addOption("reversed", false);
         this.addOption("flipped", false);
-
         this.addOption("g", 40);
         this.addOption("a", 20);
         this.addOption("b", 30);
         this.addOption("f", 40);
-
         this.addOption("T1", 30);
         this.addOption("T2", 10);
         this.addOption("T3", 10);
         this.addOption("L", 130);
-
         this.addOption("PPosition", 0);
         this.addOption("POffset", 0);
-
         this.addOption("gAngleDeg", 0);
-
         this.addOption("oscInput", false);
         this.addOption("oscCenter", 50);
         this.addOption("oscMagnitude", 50);
-
         this.addOption("phaseOffset", 0.1);
-
         this.addOption("traceC", false);
         this.addOption("traceD", false);
         this.addOption("traceP", false);
-
         this.addOption("showLabels", true);
         this.addOption("showPivots", true);
         this.addOption("showInputRange", false);
         this.addOption("showCoupler", true);
-
         this.addOption("zoom", 100);
-        var zoom = this.getOption("zoom");
-        
-	this.setUnits(130, 130 / this.goldenRatio);
+        var zoom = this.getOption("zoom");        
+	    this.setUnits(130, 130 / this.goldenRatio);
         this.scale($V([zoom / 100, zoom / 100]));
-
         this.addOption("xTranslate", 0);
         this.addOption("yTranslate", 0);
         this.translate($V([this.getOption("xTranslate"), this.getOption("yTranslate")]));
-
         var a = this.getOption("a");
         var b = this.getOption("b");
         var g = this.getOption("g");
         var f = this.getOption("f");
-
         var PPosition = this.getOption("PPosition");
         var POffset = this.getOption("POffset");
-
         var gAngle = this.degToRad(this.getOption("gAngleDeg"));
-
-        var limits = limitsFourBar(this, g, f, a, b);
-
-        this.addOption("inputType", limits.inputType);
-        this.addOption("outputType", limits.outputType);
-        this.addOption("ValidityIndex", limits.ValidityIndex);
-        this.addOption("ValidityRelation", limits.ValidityRelation);
-        this.addOption("GrashofIndex", limits.GrashofIndex);
-        this.addOption("Grashof", limits.Grashof);
-        this.addOption("GrashofType", limits.GrashofType);
-        this.addOption("GrashofRelation", limits.GrashofRelation);
-        this.addOption("GrashofInfo", limits.GrashofInfo);
-        this.addOption("limitedRange", limits.limited);
-
-        if (!limits.valid) {
+        var restraints = limitsFourBar(this, g, f, a, b);
+        this.addOption("inputType", restraints.inputType);
+        this.addOption("outputType", restraints.outputType);
+        this.addOption("ValidityIndex", restraints.ValidityIndex);
+        this.addOption("ValidityRelation", restraints.ValidityRelation);
+        this.addOption("GrashofIndex", restraints.GrashofIndex);
+        this.addOption("Grashof", restraints.Grashof);
+        this.addOption("GrashofType", restraints.GrashofType);
+        this.addOption("GrashofRelation", restraints.GrashofRelation);
+        this.addOption("GrashofInfo", restraints.GrashofInfo);
+        this.addOption("limitedRange", restraints.limited);
+        if (!restraints.valid) {
             this.text($V([0, 0]), $V([0, 0]), "TEX:impossible geometry");
             return;
         }
-
-        var oscInput = this.getOption("oscInput");
-        var oscCenter = this.getOption("oscCenter");
-        var oscMagnitude = this.getOption("oscMagnitude");
-
+        var oscilatingInput = this.getOption("oscInput");
+        var oscilationCenter = this.getOption("oscCenter");
+        var oscilatingAmplitude = this.getOption("oscMagnitude");
         var alphaLimited, alphaMin, alphaMax, alphaCent;
-
         var phase, alpha;
-        var flipped = false;
-        if (limits.limited) {
+        var invertedState = false;
+        if (restraints.limited) {
             var r, c;
-            if (oscInput) {
-                c = oscCenter / 100;
-                r = Math.min(c, 1 - c) * oscMagnitude / 100;
+            if (oscilatingInput) {
+                c = oscilationCenter / 100;
+                r = Math.min(c, 1 - c) * oscilatingAmplitude / 100;
             } else {
                 c = 0.5;
                 r = 0.5;
             }
             alphaLimited = true;
-            alphaMin = this.linearInterp(limits.alphaMin, limits.alphaMax, c - r);
-            alphaMax = this.linearInterp(limits.alphaMin, limits.alphaMax, c + r);
-            alphaCent = this.linearInterp(limits.alphaMin, limits.alphaMax, c);
-
+            alphaMin = this.linearInterp(restraints.alphaMin, restraints.alphaMax, c - r);
+            alphaMax = this.linearInterp(restraints.alphaMin, restraints.alphaMax, c + r);
+            alphaCent = this.linearInterp(restraints.alphaMin, restraints.alphaMax, c);
             var alphaRange = alphaMax - alphaMin;
             phase = (alphaRange > 0) ? (t / Math.max(alphaRange, 0.3) - this.getOption("phaseOffset")) : 0;
             var w = c + r * Math.sin(phase * Math.PI);
-            alpha = this.linearInterp(limits.alphaMin, limits.alphaMax, w);
-            if (limits.canFlip) {
-                if (oscInput) {
-                    if (limits.flipPeriod == 2) {
-                        if (oscMagnitude == 100) {
-                            if (oscCenter > 50) {
-                                flipped = (Math.cos((phase + 0.5) * Math.PI / 2) < 0);
-                            } else if (oscCenter == 50) {
-                                flipped = (Math.cos(phase * Math.PI) < 0);
-                            } else { // oscCenter < 50
-                                flipped = (Math.cos((phase - 0.5) * Math.PI / 2) < 0);
+            alpha = this.linearInterp(restraints.alphaMin, restraints.alphaMax, w);
+            if (restraints.canFlip) {
+                if (oscilatingInput) {
+                    if (restraints.flipPeriod == 2) {
+                        if (oscilatingAmplitude == 100) {
+                            if (oscilationCenter > 50) {
+                                invertedState = (Math.cos((phase + 0.5) * Math.PI / 2) < 0);
+                            } else if (oscilationCenter == 50) {
+                                invertedState = (Math.cos(phase * Math.PI) < 0);
+                            } else { 
+                                invertedState = (Math.cos((phase - 0.5) * Math.PI / 2) < 0);
                             }
                         }
-                    } else if (limits.flipPeriod == 1) {
-                        if (oscMagnitude == 100) {
-                            if (oscCenter > 50) {
+                    } else if (restraints.flipPeriod == 1) {
+                        if (oscilatingAmplitude == 100) {
+                            if (oscilationCenter > 50) {
                                 if (Math.cos((phase / 4 + 1/8) * 2 * Math.PI) < 0) {
-                                    flipped = (w > 0.5);
+                                    invertedState = (w > 0.5);
                                 } else {
-                                    flipped = (w < 0.5);
+                                    invertedState = (w < 0.5);
                                 }
-                            } else if (oscCenter == 50) {
-                                flipped = (Math.cos((phase / limits.flipPeriod + limits.flipPhase / 4) * 2 * Math.PI) < 0);
-                            } else { // oscCenter < 50
+                            } else if (oscilationCenter == 50) {
+                                invertedState = (Math.cos((phase / restraints.flipPeriod + restraints.flipPhase / 4) * 2 * Math.PI) < 0);
+                            } else { 
                                 if (Math.cos((phase / 4 - 1/8) * 2 * Math.PI) < 0) {
-                                    flipped = (w < 0.5);
+                                    invertedState = (w < 0.5);
                                 } else {
-                                    flipped = (w > 0.5);
+                                    invertedState = (w > 0.5);
                                 }
                             }
-                        } else { // oscMagnitude < 100
+                        } else { 
                             if (c + r > 0.5 && c - r < 0.5) {
-                                flipped = (w > 0.5);
+                                invertedState = (w > 0.5);
                             }
                         }
                     }
                 } else {
-                    flipped = (Math.cos((phase / limits.flipPeriod + limits.flipPhase / 4) * 2 * Math.PI) < 0);
+                    invertedState = (Math.cos((phase / restraints.flipPeriod + restraints.flipPhase / 4) * 2 * Math.PI) < 0);
                 }
             }
         } else {
-            if (oscInput) {
-                var c = oscCenter / 100;
-                var r = 0.5 * oscMagnitude / 100;
+            if (oscilatingInput) {
+                var c = oscilationCenter / 100;
+                var r = 0.5 * oscilatingAmplitude / 100;
                 var alphaRange = r * 4 * Math.PI;
                 var oscPhase = (alphaRange > 0) ? (t / Math.max(alphaRange, 0.3) - this.getOption("phaseOffset")) : 0;
                 var w = c + r * Math.sin(oscPhase * Math.PI);
@@ -245,146 +221,133 @@ $(document).ready(function() {
                 alphaMin = (c - r) * 2 * Math.PI;
                 alphaMax = (c + r) * 2 * Math.PI;
                 alphaCent = c * 2 * Math.PI;
-                if (limits.canFlip) {
+                if (restraints.canFlip) {
                     phase = alpha / (2 * Math.PI);
-                    flipped = (Math.sin((phase / limits.flipPeriod + limits.flipPhase / 4) * 2 * Math.PI) < 0);
+                    invertedState = (Math.sin((phase / restraints.flipPeriod + restraints.flipPhase / 4) * 2 * Math.PI) < 0);
                 }
             } else {
                 alpha = t + Math.PI/2 + 0.1 - this.getOption("phaseOffset");
                 alphaLimited = false;
-                if (limits.canFlip) {
+                if (restraints.canFlip) {
                     phase = alpha / (2 * Math.PI);
-                    flipped = (Math.sin((phase / limits.flipPeriod + limits.flipPhase / 4) * 2 * Math.PI) < 0);
+                    invertedState = (Math.sin((phase / restraints.flipPeriod + restraints.flipPhase / 4) * 2 * Math.PI) < 0);
                 }
             }
         }
-        flipped = (this.getOption("flipped") ? !flipped : flipped);
+        invertedState = (this.getOption("flipped") ? !invertedState : invertedState);
         var angleSign = (this.getOption("reversed") ? -1 : 1);
-
-        var beta = this.solveFourBar(g, f, a, b, alpha, flipped);
-        var pA = $V([-g/2, 0]).rotate(gAngle, $V([0, 0]));
-        var pB = $V([g/2, 0]).rotate(gAngle, $V([0, 0]));
-        var pD = pA.add(this.vector2DAtAngle(angleSign * alpha + gAngle).x(a));
-        var pC = pB.add(this.vector2DAtAngle(angleSign * beta + gAngle).x(b));
-
-        var pt = pC.subtract(pD);
-        var po = pt.rotate(Math.PI/2, $V([0, 0]));
-        var pP = pD.add(pt.x(0.5 + PPosition / 200)).add(po.x(POffset / 100));
-
+        var beta = this.solveFourBar(g, f, a, b, alpha, invertedState);
+        var pointA = $V([-g/2, 0]).rotate(gAngle, $V([0, 0]));
+        var pointB = $V([g/2, 0]).rotate(gAngle, $V([0, 0]));
+        var pointD = pointA.add(this.vector2DAtAngle(angleSign * alpha + gAngle).x(a));
+        var pointC = pointB.add(this.vector2DAtAngle(angleSign * beta + gAngle).x(b));
+        var pointTransient = pointC.subtract(pointD);
+        var pointOffset = pointTransient.rotate(Math.PI/2, $V([0, 0]));
+        var pointP = pointD.add(pointTransient.x(0.5 + PPosition / 200)).add(pointOffset.x(POffset / 100));
         if (this.getOption("showPivots")) {
             var pivotHeight = 3;
             var pivotWidth = 3;
-            this.pivot(pA.add($V([0, -pivotHeight])), pA, pivotWidth);
-            this.pivot(pB.add($V([0, -pivotHeight])), pB, pivotWidth);
-            this.ground(pA.add($V([0, -pivotHeight])), $V([0, 1]), 2 * pivotWidth);
-            this.ground(pB.add($V([0, -pivotHeight])), $V([0, 1]), 2 * pivotWidth);
+            this.pivot(pointA.add($V([0, -pivotHeight])), pointA, pivotWidth);
+            this.pivot(pointB.add($V([0, -pivotHeight])), pointB, pivotWidth);
+            this.ground(pointA.add($V([0, -pivotHeight])), $V([0, 1]), 2 * pivotWidth);
+            this.ground(pointB.add($V([0, -pivotHeight])), $V([0, 1]), 2 * pivotWidth);
         }
-
-        this.rod(pA, pD,1.5);
-        this.rod(pD, pC,1.5);
-        this.rod(pC, pB,1.5);
-        this.rod(pB, pA,1.5);
-
-        this.point(pA);
-        this.point(pD);
-        this.point(pC);
-        this.point(pB);
-
+        this.rod(pointA, pointD,1.5);
+        this.rod(pointD, pointC,1.5);
+        this.rod(pointC, pointB,1.5);
+        this.rod(pointB, pointA,1.5);
+        this.point(pointA);
+        this.point(pointD);
+        this.point(pointC);
+        this.point(pointB);
         if (this.getOption("showCoupler")) {
-            this.line(pD, pP);
-            this.line(pC, pP);
-            this.point(pP);
+            this.line(pointD, pointP);
+            this.line(pointC, pointP);
+            this.point(pointP);
         }
-
         if (this.getOption("traceC")) {
-            var pCHistory = this.history("pC", 0.05, 4 * Math.PI + 0.05, t, pC);
+            var pCHistory = this.history("pointC", 0.05, 4 * Math.PI + 0.05, t, pointC);
             var pCTrace = this.historyToTrace(pCHistory);
             this.save();
             this.setProp("shapeOutlineColor", "rgb(255, 231, 76)");
             this.polyLine(pCTrace);
             this.restore();
         } else {
-            this.clearHistory("pC");
+            this.clearHistory("pointC");
         }
-
         if (this.getOption("traceD")) {
-            var pDHistory = this.history("pD", 0.05, 4 * Math.PI + 0.05, t, pD);
+            var pDHistory = this.history("pointD", 0.05, 4 * Math.PI + 0.05, t, pointD);
             var pDTrace = this.historyToTrace(pDHistory);
             this.save();
             this.setProp("shapeOutlineColor", "rgb(255, 89, 100)");
             this.polyLine(pDTrace);
             this.restore();
         } else {
-            this.clearHistory("pD");
+            this.clearHistory("pointD");
         }
-
         if (this.getOption("traceP")) {
-            var pPHistory = this.history("pP", 0.05, 4 * Math.PI + 0.05, t, pP);
+            var pPHistory = this.history("pointP", 0.05, 4 * Math.PI + 0.05, t, pointP);
             var pPTrace = this.historyToTrace(pPHistory);
             this.save();
             this.setProp("shapeOutlineColor", "rgb(56, 97, 140)");
             this.polyLine(pPTrace);
             this.restore();
         } else {
-            this.clearHistory("pP");
+            this.clearHistory("pointP");
         }
-
         if (this.getOption("showLabels")) {
             var anchor, otherPoints;
             if (this.getOption("showPivots")) {
-                this.text(pA, $V([2, 0]), "TEX:$A$");
-                this.text(pB, $V([-1.5, -1.5]), "TEX:$B$");
+                this.text(pointA, $V([2, 0]), "TEX:$A$");
+                this.text(pointB, $V([-1.5, -1.5]), "TEX:$B$");
             } else {
-                anchor = this.findAnchorForIntersection(pA, [pD, pB]);
-                this.text(pA, anchor, "TEX:$A$");
-                anchor = this.findAnchorForIntersection(pB, [pA, pC, pB.add(this.vector2DAtAngle(gAngle))]);
-                this.text(pB, anchor, "TEX:$B$");
+                anchor = this.findAnchorForIntersection(pointA, [pointD, pointB]);
+                this.text(pointA, anchor, "TEX:$A$");
+                anchor = this.findAnchorForIntersection(pointB, [pointA, pointC, pointB.add(this.vector2DAtAngle(gAngle))]);
+                this.text(pointB, anchor, "TEX:$B$");
             }
-            otherPoints = [pB, pD];
+            otherPoints = [pointB, pointD];
             if (this.getOption("showCoupler")) {
-                otherPoints.push(pP);
+                otherPoints.push(pointP);
             }
-            anchor = this.findAnchorForIntersection(pC, otherPoints);
-            this.text(pC, anchor, "TEX:$C$");
-            otherPoints = [pC, pA];
+            anchor = this.findAnchorForIntersection(pointC, otherPoints);
+            this.text(pointC, anchor, "TEX:$C$");
+            otherPoints = [pointC, pointA];
             if (this.getOption("showCoupler")) {
-                otherPoints.push(pP);
+                otherPoints.push(pointP);
             }
-            anchor = this.findAnchorForIntersection(pD, otherPoints);
-            this.text(pD, anchor, "TEX:$D$");
+            anchor = this.findAnchorForIntersection(pointD, otherPoints);
+            this.text(pointD, anchor, "TEX:$D$");
             if (this.getOption("showCoupler")) {
-                anchor = this.findAnchorForIntersection(pP, [pD, pC]);
-                this.text(pP, anchor, "TEX:$P$");
+                anchor = this.findAnchorForIntersection(pointP, [pointD, pointC]);
+                this.text(pointP, anchor, "TEX:$P$");
             }
-            this.labelLine(pA, pD, $V([0, 1]), "TEX:$a$");
-            this.labelLine(pD, pC, $V([0, 1]), "TEX:$f$");
-            this.labelLine(pC, pB, $V([0, 1]), "TEX:$b$");
-            this.labelLine(pB, pA, $V([0, 1]), "TEX:$g$");
-
+            this.labelLine(pointA, pointD, $V([0, 1]), "TEX:$a$");
+            this.labelLine(pointD, pointC, $V([0, 1]), "TEX:$f$");
+            this.labelLine(pointC, pointB, $V([0, 1]), "TEX:$b$");
+            this.labelLine(pointB, pointA, $V([0, 1]), "TEX:$g$");
             var alphaR = Math.min(10, Math.min(g, a) * 0.7);
             var alphaShow = angleSign * this.fixedMod(alpha, 2 * Math.PI);
-            this.circleArrow(pA, alphaR, gAngle, alphaShow + gAngle, undefined, true);
-            this.labelCircleLine(pA, alphaR, gAngle, alphaShow + gAngle, $V([0, 1]), "TEX:$\\alpha$");
-
+            this.circleArrow(pointA, alphaR, gAngle, alphaShow + gAngle, undefined, true);
+            this.labelCircleLine(pointA, alphaR, gAngle, alphaShow + gAngle, $V([0, 1]), "TEX:$\\alpha$");
             var betaR = Math.min(10, Math.min(g, b) * 0.7);
             var betaShow = angleSign * this.fixedMod(beta, 2 * Math.PI);
             this.save();
             this.setProp("shapeStrokePattern", "dashed");
-            this.line(pB, pB.add(this.vector2DAtAngle(gAngle).x(betaR * 1.4)));
+            this.line(pointB, pointB.add(this.vector2DAtAngle(gAngle).x(betaR * 1.4)));
             this.restore();
-            this.circleArrow(pB, betaR, gAngle, betaShow + gAngle, undefined, true);
-            this.labelCircleLine(pB, betaR, gAngle, betaShow + gAngle, $V([0, 1]), "TEX:$\\beta$");
+            this.circleArrow(pointB, betaR, gAngle, betaShow + gAngle, undefined, true);
+            this.labelCircleLine(pointB, betaR, gAngle, betaShow + gAngle, $V([0, 1]), "TEX:$\\beta$");
         }
-
         if (this.getOption("showInputRange")) {
             var alphaR = Math.min(10, Math.min(g, a)) * 1.5;
             if (alphaLimited) {
                 var alphaMinShow = gAngle + angleSign * alphaMin;
                 var alphaMaxShow = gAngle + angleSign * alphaMax;
                 var alphaCentShow = gAngle + angleSign * alphaCent;
-                if (limits.limited) {
-                    var limitAlphaMinShow = gAngle + angleSign * limits.alphaMin;
-                    var limitAlphaMaxShow = gAngle + angleSign * limits.alphaMax;
+                if (restraints.limited) {
+                    var limitAlphaMinShow = gAngle + angleSign * restraints.alphaMin;
+                    var limitAlphaMaxShow = gAngle + angleSign * restraints.alphaMax;
                 }
                 this.save();
                 this.setProp("arrowLinePattern", "dashed");
@@ -393,126 +356,120 @@ $(document).ready(function() {
                 var anchorMax = this.vector2DAtAngle(alphaMaxShow);
                 var anchorCent = this.vector2DAtAngle(alphaCentShow);
                 var anchorLimitMin, anchorLimitMax;
-                if (limits.limited) {
+                if (restraints.limited) {
                     anchorLimitMin = this.vector2DAtAngle(limitAlphaMinShow);
                     anchorLimitMax = this.vector2DAtAngle(limitAlphaMaxShow);
                 }
                 var innerScale = 1.2;
                 var outerScale = 1.4;
-                this.line(pA, pA.add(anchorMin.x(alphaR * innerScale)));
-                this.line(pA, pA.add(anchorMax.x(alphaR * innerScale)));
-                this.line(pA, pA.add(anchorCent.x(alphaR * innerScale)));
-                if (limits.limited) {
-                    this.line(pA, pA.add(anchorLimitMin.x(alphaR * outerScale)));
-                    this.line(pA, pA.add(anchorLimitMax.x(alphaR * outerScale)));
+                this.line(pointA, pointA.add(anchorMin.x(alphaR * innerScale)));
+                this.line(pointA, pointA.add(anchorMax.x(alphaR * innerScale)));
+                this.line(pointA, pointA.add(anchorCent.x(alphaR * innerScale)));
+                if (restraints.limited) {
+                    this.line(pointA, pointA.add(anchorLimitMin.x(alphaR * outerScale)));
+                    this.line(pointA, pointA.add(anchorLimitMax.x(alphaR * outerScale)));
                 }
                 anchorMin = anchorMin.x(-1 / this.supNorm(anchorMin));
                 anchorMax = anchorMax.x(-1 / this.supNorm(anchorMax));
                 anchorCent = anchorCent.x(-1 / this.supNorm(anchorCent));
-                if (limits.limited) {
+                if (restraints.limited) {
                     anchorLimitMin = anchorLimitMin.x(-1 / this.supNorm(anchorLimitMin));
                     anchorLimitMax = anchorLimitMax.x(-1 / this.supNorm(anchorLimitMax));
                 }
-                this.circleArrow(pA, alphaR, alphaCentShow, alphaMinShow, undefined, true);
-                this.circleArrow(pA, alphaR, alphaCentShow, alphaMaxShow, undefined, true);
+                this.circleArrow(pointA, alphaR, alphaCentShow, alphaMinShow, undefined, true);
+                this.circleArrow(pointA, alphaR, alphaCentShow, alphaMaxShow, undefined, true);
                 this.restore();
                 if (this.getOption("showLabels")) {
-                    this.text(pA.add(this.vector2DAtAngle(alphaCentShow).x(alphaR * innerScale)), anchorCent, "TEX:$\\alpha_{\\rm cent}$");
-                    this.labelCircleLine(pA, alphaR, alphaCentShow, alphaMinShow, $V([0, 1]), "TEX:$\\Delta\\alpha$");
-                    this.labelCircleLine(pA, alphaR, alphaCentShow, alphaMaxShow, $V([0, 1]), "TEX:$\\Delta\\alpha$");
-                    if (limits.limited) {
-                        this.text(pA.add(this.vector2DAtAngle(limitAlphaMinShow).x(alphaR * outerScale)), anchorLimitMin, "TEX:$\\alpha_{\\rm min}$");
-                        this.text(pA.add(this.vector2DAtAngle(limitAlphaMaxShow).x(alphaR * outerScale)), anchorLimitMax, "TEX:$\\alpha_{\\rm max}$");
+                    this.text(pointA.add(this.vector2DAtAngle(alphaCentShow).x(alphaR * innerScale)), anchorCent, "TEX:$\\alpha_{\\rm cent}$");
+                    this.labelCircleLine(pointA, alphaR, alphaCentShow, alphaMinShow, $V([0, 1]), "TEX:$\\Delta\\alpha$");
+                    this.labelCircleLine(pointA, alphaR, alphaCentShow, alphaMaxShow, $V([0, 1]), "TEX:$\\Delta\\alpha$");
+                    if (restraints.limited) {
+                        this.text(pointA.add(this.vector2DAtAngle(limitAlphaMinShow).x(alphaR * outerScale)), anchorLimitMin, "TEX:$\\alpha_{\\rm min}$");
+                        this.text(pointA.add(this.vector2DAtAngle(limitAlphaMaxShow).x(alphaR * outerScale)), anchorLimitMax, "TEX:$\\alpha_{\\rm max}$");
                     }
                 }
             } else {
                 this.save();
                 this.setProp("arrowLinePattern", "dashed");
                 this.setProp("shapeStrokePattern", "dashed");
-                this.circleArrow(pA, alphaR, gAngle, 2 * Math.PI + gAngle, undefined, true);
+                this.circleArrow(pointA, alphaR, gAngle, 2 * Math.PI + gAngle, undefined, true);
                 if (this.getOption("showLabels")) {
-                    this.labelCircleLine(pA, alphaR, gAngle, 2 * Math.PI + gAngle, $V([0, 1]), "TEX:$\\Delta\\alpha$");
+                    this.labelCircleLine(pointA, alphaR, gAngle, 2 * Math.PI + gAngle, $V([0, 1]), "TEX:$\\Delta\\alpha$");
                 }
                 this.restore();
             }
         }
     };
 
-    var linkageConvertFromLengths = function(pd, setReset) {
-        var a = pd.getOption("a");
-        var b = pd.getOption("b");
-        var g = pd.getOption("g");
-        var f = pd.getOption("f");
-
-        var limits = limitsFourBar(pd, g, f, a, b);
-        pd.setOption("inputType", limits.inputType, false, undefined, setReset);
-        pd.setOption("outputType", limits.outputType, false, undefined, setReset);
-        pd.setOption("ValidityIndex", limits.ValidityIndex, false, undefined, setReset);
-        pd.setOption("ValidityRelation", limits.ValidityRelation, false, undefined, setReset);
-        pd.setOption("GrashofIndex", limits.GrashofIndex, false, undefined, setReset);
-        pd.setOption("Grashof", limits.Grashof, false, undefined, setReset);
-        pd.setOption("GrashofType", limits.GrashofType, false, undefined, setReset);
-        pd.setOption("GrashofRelation", limits.GrashofRelation, false, undefined, setReset);
-        pd.setOption("GrashofInfo", limits.GrashofInfo, false, undefined, setReset);
-        pd.setOption("limitedRange", limits.limited, false, undefined, setReset);
-
-        if (pd.getOption("controlMethod") === "lengths") {
+    var linkageConvertFromLengths = function(parametersDescription, setReset) {
+        var a = parametersDescription.getOption("a");
+        var b = parametersDescription.getOption("b");
+        var g = parametersDescription.getOption("g");
+        var f = parametersDescription.getOption("f");
+        var restraints = limitsFourBar(parametersDescription, g, f, a, b);
+        parametersDescription.setOption("inputType", restraints.inputType, false, undefined, setReset);
+        parametersDescription.setOption("outputType", restraints.outputType, false, undefined, setReset);
+        parametersDescription.setOption("ValidityIndex", restraints.ValidityIndex, false, undefined, setReset);
+        parametersDescription.setOption("ValidityRelation", restraints.ValidityRelation, false, undefined, setReset);
+        parametersDescription.setOption("GrashofIndex", restraints.GrashofIndex, false, undefined, setReset);
+        parametersDescription.setOption("Grashof", restraints.Grashof, false, undefined, setReset);
+        parametersDescription.setOption("GrashofType", restraints.GrashofType, false, undefined, setReset);
+        parametersDescription.setOption("GrashofRelation", restraints.GrashofRelation, false, undefined, setReset);
+        parametersDescription.setOption("GrashofInfo", restraints.GrashofInfo, false, undefined, setReset);
+        parametersDescription.setOption("limitedRange", restraints.limited, false, undefined, setReset);
+        if (parametersDescription.getOption("controlMethod") === "lengths") {
             var L = a + b + g + f;
             var T1 = g + f - b - a;
             var T2 = b + g - f - a;
             var T3 = f + b - g - a;
-
-            pd.setOption("L", L, false, undefined, setReset);
-            pd.setOption("T1", T1, false, undefined, setReset);
-            pd.setOption("T2", T2, false, undefined, setReset);
-            pd.setOption("T3", T3, false, undefined, setReset);
+            parametersDescription.setOption("L", L, false, undefined, setReset);
+            parametersDescription.setOption("T1", T1, false, undefined, setReset);
+            parametersDescription.setOption("T2", T2, false, undefined, setReset);
+            parametersDescription.setOption("T3", T3, false, undefined, setReset);
         }
     };
 
-    var linkageConvertFromExcesses = function(pd) {
-        if (pd.getOption("controlMethod") === "excesses") {
-            var L = pd.getOption("L");
-            var T1 = pd.getOption("T1");
-            var T2 = pd.getOption("T2");
-            var T3 = pd.getOption("T3");
-
+    var linkageConvertFromExcesses = function(parametersDescription) {
+        if (parametersDescription.getOption("controlMethod") === "excesses") {
+            var L = parametersDescription.getOption("L");
+            var T1 = parametersDescription.getOption("T1");
+            var T2 = parametersDescription.getOption("T2");
+            var T3 = parametersDescription.getOption("T3");
             var a = (L - T1 - T2 - T3) / 4;
             var b = (L - T1 + T2 + T3) / 4;
             var g = (L + T1 + T2 - T3) / 4;
             var f = (L + T1 - T2 + T3) / 4;
-
-            pd.setOption("a", a, false);
-            pd.setOption("b", b, false);
-            pd.setOption("g", g, false);
-            pd.setOption("f", f, false);
+            parametersDescription.setOption("a", a, false);
+            parametersDescription.setOption("b", b, false);
+            parametersDescription.setOption("g", g, false);
+            parametersDescription.setOption("f", f, false);
         }
     };
 
-    var aml_fl_c = new PrairieDrawAnim("aml-fl-c", linkagePDFunction);
-
-    aml_fl_c.registerOptionCallback("controlMethod", function(value) {
+    var mechanism = new PrairieDrawAnim("mechanismDrawing", linkagePDFunction);
+    mechanism.registerOptionCallback("controlMethod", function(value) {
         if (value === "lengths") {
             // controlling the lenths directly
-            var a = Math.min(Math.max(aml_fl_c.getOption("a"), 5), 40);
-            var b = Math.min(Math.max(aml_fl_c.getOption("b"), 5), 40);
-            var g = Math.min(Math.max(aml_fl_c.getOption("g"), 5), 40);
-            var f = Math.min(Math.max(aml_fl_c.getOption("f"), 5), 40);
-            aml_fl_c.setOption("a", a);
-            aml_fl_c.setOption("b", b);
-            aml_fl_c.setOption("g", g);
-            aml_fl_c.setOption("f", f);
+            var a = Math.min(Math.max(mechanism.getOption("a"), 5), 40);
+            var b = Math.min(Math.max(mechanism.getOption("b"), 5), 40);
+            var g = Math.min(Math.max(mechanism.getOption("g"), 5), 40);
+            var f = Math.min(Math.max(mechanism.getOption("f"), 5), 40);
+            mechanism.setOption("a", a);
+            mechanism.setOption("b", b);
+            mechanism.setOption("g", g);
+            mechanism.setOption("f", f);
             $("input.lengthInput").css("visibility", "visible");
             $("input.excessInput").css("visibility", "hidden");
         } else if (value === "excesses") {
             // controlling the excess T_i inputs
-            var L = Math.min(Math.max(aml_fl_c.getOption("L"), 10), 200);
-            var T1 = Math.min(Math.max(aml_fl_c.getOption("T1"), -40), 40);
-            var T2 = Math.min(Math.max(aml_fl_c.getOption("T2"), -40), 40);
-            var T3 = Math.min(Math.max(aml_fl_c.getOption("T3"), -40), 40);
-            aml_fl_c.setOption("L", L);
-            aml_fl_c.setOption("T1", T1);
-            aml_fl_c.setOption("T2", T2);
-            aml_fl_c.setOption("T3", T3);
+            var L = Math.min(Math.max(mechanism.getOption("L"), 10), 200);
+            var T1 = Math.min(Math.max(mechanism.getOption("T1"), -40), 40);
+            var T2 = Math.min(Math.max(mechanism.getOption("T2"), -40), 40);
+            var T3 = Math.min(Math.max(mechanism.getOption("T3"), -40), 40);
+            mechanism.setOption("L", L);
+            mechanism.setOption("T1", T1);
+            mechanism.setOption("T2", T2);
+            mechanism.setOption("T3", T3);
             $("input.lengthInput").css("visibility", "hidden");
             $("input.excessInput").css("visibility", "visible");
         } else {
@@ -520,7 +477,7 @@ $(document).ready(function() {
         }
     });
 
-    aml_fl_c.registerOptionCallback("oscInput", function(value) {
+    mechanism.registerOptionCallback("oscInput", function(value) {
         if (value) {
             $(".oscInput").css("visibility", "visible");
         } else {
@@ -528,7 +485,7 @@ $(document).ready(function() {
         }
     });
 
-    aml_fl_c.registerOptionCallback("limitedRange", function(value) {
+    mechanism.registerOptionCallback("limitedRange", function(value) {
         if (value) {
             $(".limitedDesc").show();
             $(".unlimitedDesc").hide();
@@ -537,30 +494,25 @@ $(document).ready(function() {
             $(".unlimitedDesc").show();
         }
     });
-
-    aml_fl_c.registerOptionCallback("a", function(value) {linkageConvertFromLengths(this);});
-    aml_fl_c.registerOptionCallback("b", function(value) {linkageConvertFromLengths(this);});
-    aml_fl_c.registerOptionCallback("g", function(value) {linkageConvertFromLengths(this);});
-    aml_fl_c.registerOptionCallback("f", function(value) {linkageConvertFromLengths(this);});
-
-    aml_fl_c.registerOptionCallback("T1", function(value) {linkageConvertFromExcesses(this);});
-    aml_fl_c.registerOptionCallback("T2", function(value) {linkageConvertFromExcesses(this);});
-    aml_fl_c.registerOptionCallback("T3", function(value) {linkageConvertFromExcesses(this);});
-    aml_fl_c.registerOptionCallback("L", function(value) {linkageConvertFromExcesses(this);});
-
-    aml_fl_c.registerOptionCallback("reversed", function(value) {this.clearAllHistory();});
-    aml_fl_c.registerOptionCallback("flipped", function(value) {this.clearAllHistory();});
-    aml_fl_c.registerOptionCallback("g", function(value) {this.clearAllHistory();});
-    aml_fl_c.registerOptionCallback("a", function(value) {this.clearAllHistory();});
-    aml_fl_c.registerOptionCallback("b", function(value) {this.clearAllHistory();});
-    aml_fl_c.registerOptionCallback("f", function(value) {this.clearAllHistory();});
-    aml_fl_c.registerOptionCallback("PPosition", function(value) {this.clearAllHistory();});
-    aml_fl_c.registerOptionCallback("POffset", function(value) {this.clearAllHistory();});
-    aml_fl_c.registerOptionCallback("gAngleDeg", function(value) {this.clearAllHistory();});
-
-    aml_fl_c.registerOptionCallback("oscInput", function(value) {this.clearAllHistory();});
-    aml_fl_c.registerOptionCallback("oscCenter", function(value) {this.clearAllHistory();});
-    aml_fl_c.registerOptionCallback("oscMagnitude", function(value) {this.clearAllHistory();});
-
-    
+    // to clear already existing values in case the bar lengths are dynamically chnaged
+    mechanism.registerOptionCallback("a", function(value) {linkageConvertFromLengths(this);});
+    mechanism.registerOptionCallback("b", function(value) {linkageConvertFromLengths(this);});
+    mechanism.registerOptionCallback("g", function(value) {linkageConvertFromLengths(this);});
+    mechanism.registerOptionCallback("f", function(value) {linkageConvertFromLengths(this);});
+    mechanism.registerOptionCallback("T1", function(value) {linkageConvertFromExcesses(this);});
+    mechanism.registerOptionCallback("T2", function(value) {linkageConvertFromExcesses(this);});
+    mechanism.registerOptionCallback("T3", function(value) {linkageConvertFromExcesses(this);});
+    mechanism.registerOptionCallback("L", function(value) {linkageConvertFromExcesses(this);});
+    mechanism.registerOptionCallback("reversed", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("flipped", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("g", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("a", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("b", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("f", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("PPosition", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("POffset", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("gAngleDeg", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("oscInput", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("oscCenter", function(value) {this.clearAllHistory();});
+    mechanism.registerOptionCallback("oscMagnitude", function(value) {this.clearAllHistory();});   
 }); 
